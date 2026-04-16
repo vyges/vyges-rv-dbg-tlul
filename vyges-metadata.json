@@ -17,7 +17,7 @@
     "digital"
   ],
   "created": "2026-04-16T04:22:21Z",
-  "updated": "2026-04-16T04:22:21Z",
+  "updated": "2026-04-16T21:03:47Z",
   "source": {
     "type": "git",
     "url": "https://github.com/vyges-ip/vyges-rv-dbg-tlul",
@@ -226,16 +226,46 @@
   },
   "dependencies": [
     {
-      "name": "pulp-riscv-dbg",
-      "type": "ip",
-      "source": "vyges-ip/pulp-riscv-dbg",
-      "description": "Upstream debug module core — dm_top, dmi_jtag, debug ROM"
+      "name": "vyges-ip/pulp-riscv-dbg",
+      "version": ">=1.0.0",
+      "dependency_info": {
+        "name": "vyges-ip/pulp-riscv-dbg",
+        "version": ">=1.0.0",
+        "type": "ip"
+      },
+      "source_management": {
+        "source": {
+          "type": "git",
+          "url": "https://github.com/vyges-ip/pulp-riscv-dbg",
+          "commit": "main"
+        },
+        "autoFetch": true
+      },
+      "compliance": {
+        "license": "SHL-0.51",
+        "attribution": "Upstream RISC-V debug module (dm_top, dmi_jtag, debug ROM) instantiated by vyges_rv_dbg_tlul.sv. MUST-HAVE: this IP's RTL references pulp-riscv-dbg modules by name."
+      }
     },
     {
-      "name": "opentitan-tlul",
-      "type": "ip",
-      "source": "vyges-ip/opentitan-tlul",
-      "description": "TL-UL package + common adapters — tlul_pkg::tl_h2d_t / tl_d2h_t"
+      "name": "vyges-ip/opentitan-tlul",
+      "version": ">=1.0.0",
+      "dependency_info": {
+        "name": "vyges-ip/opentitan-tlul",
+        "version": ">=1.0.0",
+        "type": "ip"
+      },
+      "source_management": {
+        "source": {
+          "type": "git",
+          "url": "https://github.com/vyges-ip/opentitan-tlul",
+          "commit": "main"
+        },
+        "autoFetch": true
+      },
+      "compliance": {
+        "license": "Apache-2.0",
+        "attribution": "TL-UL package (tlul_pkg::tl_h2d_t, tl_d2h_t) imported in all 3 adapter RTL files. MUST-HAVE: cannot compile without tlul_pkg."
+      }
     }
   ],
   "test": {
