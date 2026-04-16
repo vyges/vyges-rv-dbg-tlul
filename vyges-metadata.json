@@ -1,0 +1,414 @@
+{
+  "$schema": "https://vyges.com/schema/v1/vyges-metadata.schema.json",
+  "x-version": "1.0.0",
+  "name": "vyges-rv-dbg-tlul",
+  "version": "0.1.0",
+  "description": "Vyges TL-UL wrapper around pulp-platform RISC-V Debug Module (RISC-V Debug Spec 0.13). Provides TL-UL slave (regs + mem) + TL-UL master (SBA) + JTAG TAP as a drop-in debug IP for Vyges TL-UL SoCs.",
+  "license": "Apache-2.0",
+  "maturity": "development",
+  "target": [
+    "asic",
+    "fpga"
+  ],
+  "design_type": [
+    "digital"
+  ],
+  "created": "2026-04-16T04:22:21Z",
+  "updated": "2026-04-16T04:22:21Z",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/vyges-ip/vyges-rv-dbg-tlul",
+    "commit": "HEAD",
+    "private": false,
+    "containsEncryptedPayload": false,
+    "indexing": true
+  },
+  "maintainers": [
+    {
+      "name": "Vyges",
+      "email": "team@vyges.com",
+      "url": "https://vyges.com",
+      "github": "vyges"
+    }
+  ],
+  "interfaces": [
+    {
+      "type": "clock",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "clk_i",
+      "width": 1,
+      "description": "System clock"
+    },
+    {
+      "type": "reset",
+      "direction": "input",
+      "protocol": "active-low",
+      "port": "rst_ni",
+      "width": 1,
+      "description": "Async active-low reset"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "next_dm_addr_i",
+      "width": 32,
+      "description": "Static word address of the next debug module in the chain (0x0 for leaf)"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "testmode_i",
+      "width": 1,
+      "description": "Test/scan mode indicator"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "standard",
+      "port": "ndmreset_o",
+      "width": 1,
+      "description": "Non-debug module reset request"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "ndmreset_ack_i",
+      "width": 1,
+      "description": "NDM reset acknowledgement pulse"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "standard",
+      "port": "dmactive_o",
+      "width": 1,
+      "description": "Debug module is active"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "standard",
+      "port": "debug_req_o",
+      "width": "NrHarts",
+      "description": "Async per-hart debug request"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "unavailable_i",
+      "width": "NrHarts",
+      "description": "Per-hart availability indicator"
+    },
+    {
+      "type": "bus",
+      "direction": "slave",
+      "protocol": "TL-UL",
+      "port": "regs_tl_d",
+      "width": 32,
+      "description": "TL-UL slave — 8 KB region covering debug CSRs (0x000-0x7FF) and debug ROM + program buffer (0x800-0xFFF)"
+    },
+    {
+      "type": "bus",
+      "direction": "master",
+      "protocol": "TL-UL",
+      "port": "sba_tl_h",
+      "width": 32,
+      "description": "TL-UL host — System Bus Access for debugger-initiated R/W"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "jtag",
+      "port": "jtag_tck_i",
+      "width": 1,
+      "description": "JTAG clock"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "jtag",
+      "port": "jtag_tms_i",
+      "width": 1,
+      "description": "JTAG mode select"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "jtag",
+      "port": "jtag_tdi_i",
+      "width": 1,
+      "description": "JTAG data in"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "jtag",
+      "port": "jtag_tdo_o",
+      "width": 1,
+      "description": "JTAG data out"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "jtag",
+      "port": "jtag_tdo_oe_o",
+      "width": 1,
+      "description": "JTAG data out enable"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "active-low",
+      "port": "jtag_trst_ni",
+      "width": 1,
+      "description": "Optional JTAG async reset (tie 1'b1 if unused)"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "NrHarts",
+      "type": "int unsigned",
+      "default": 1,
+      "description": "Number of harts this debug module supports"
+    },
+    {
+      "name": "BusWidth",
+      "type": "int unsigned",
+      "default": 32,
+      "description": "Data bus width (32 for RV32, 64 for RV64)"
+    },
+    {
+      "name": "DmBaseAddress",
+      "type": "int unsigned",
+      "default": "'h00010000",
+      "description": "Base address of the debug module slave region"
+    },
+    {
+      "name": "IdcodeValue",
+      "type": "logic [31:0]",
+      "default": "32'h1000_0001",
+      "description": "32-bit IDCODE reported on JTAG TAP"
+    }
+  ],
+  "performance": {},
+  "architecture": {
+    "type": "peripheral",
+    "features": [
+      "RISC-V Debug Spec 0.13 compliant",
+      "TL-UL slave (debug CSRs + ROM + program buffer)",
+      "TL-UL master (System Bus Access)",
+      "JTAG TAP (standard)",
+      "Parameterizable NrHarts for multi-core",
+      "Debug-chain linking via next_dm_addr_i"
+    ]
+  },
+  "asic": {
+    "flavor": "digital",
+    "technology": [
+      "sky130A"
+    ]
+  },
+  "fpga": {
+    "toolchain": [
+      "Vivado"
+    ],
+    "devices": [
+      "Artix-7"
+    ]
+  },
+  "dependencies": [
+    {
+      "name": "pulp-riscv-dbg",
+      "type": "ip",
+      "source": "vyges-ip/pulp-riscv-dbg",
+      "description": "Upstream debug module core — dm_top, dmi_jtag, debug ROM"
+    },
+    {
+      "name": "opentitan-tlul",
+      "type": "ip",
+      "source": "vyges-ip/opentitan-tlul",
+      "description": "TL-UL package + common adapters — tlul_pkg::tl_h2d_t / tl_d2h_t"
+    }
+  ],
+  "test": {
+    "testbenches": [],
+    "status": "skeleton",
+    "coverage": "none"
+  },
+  "documentation": {
+    "spec": "https://riscv.org/specifications/debug-specification/"
+  },
+  "artifacts": {
+    "total_rtl_lines": 250
+  },
+  "categories": [
+    {
+      "main_category": "Processing Cores",
+      "sub_category": "RISC-V"
+    }
+  ],
+  "keywords": [
+    "RISC-V",
+    "Debug Module",
+    "TileLink",
+    "TL-UL",
+    "JTAG",
+    "DMI",
+    "SBA",
+    "Vyges"
+  ],
+  "trust": {
+    "verification_level": "skeleton",
+    "tapeout_count": 0,
+    "fpga_validated": false,
+    "formal_verified": false,
+    "maintained": true,
+    "last_activity": "2026-04-16T04:22:21Z"
+  },
+  "meta": {
+    "template": {
+      "generator": "vyges-manual",
+      "template_version": "1.0.0",
+      "generated_at": "2026-04-16T04:22:21Z"
+    },
+    "schema": {
+      "version": "1.0.0"
+    }
+  },
+  "rtl_files": [
+    "rtl/vyges_rv_dbg_tlul.sv",
+    "rtl/vyges_rv_dbg_tlul_slave.sv",
+    "rtl/vyges_rv_dbg_tlul_master.sv"
+  ],
+  "rtl_quality": {
+    "module_prefixed": true,
+    "defines_prefixed": true,
+    "header_guards": false,
+    "one_module_per_file": true,
+    "self_contained_includes": true,
+    "no_translate_pragmas": true,
+    "lint_clean": false,
+    "no_casex": true,
+    "width_clean": false,
+    "no_sv_keyword_conflicts": true
+  },
+  "defines": [],
+  "memory_regions": [
+    {
+      "name": "dm_regs",
+      "offset": "0x0000",
+      "size": "0x800",
+      "size_bytes": 2048,
+      "description": "Debug Module CSR region — dmcontrol, dmstatus, hartinfo, abstract command, data[0..11], progbuf[0..15], sbcs/sbaddress/sbdata (SBA CSRs). Accessed by external debugger via JTAG — NOT intended for firmware access. Firmware must treat this region as reserved.",
+      "firmware_visible": false,
+      "debug_only": true
+    },
+    {
+      "name": "dm_mem",
+      "offset": "0x0800",
+      "size": "0x800",
+      "size_bytes": 2048,
+      "description": "Debug ROM + program buffer. Debug ROM contains the park loop at 0x800, exception handler at 0x808, resume address at 0x804. Program buffer at 0x300 (offset into this region) is where GDB writes instruction sequences. Firmware must treat this region as reserved.",
+      "firmware_visible": false,
+      "debug_only": true,
+      "special_addresses": {
+        "halt_address": "0x800",
+        "resume_address": "0x804",
+        "exception_address": "0x808",
+        "progbuf_start": "0xB00"
+      }
+    }
+  ],
+  "registers": [],
+  "soc_integration": {
+    "xbar_slave_slots_consumed": 2,
+    "xbar_slave_slots_note": "Two TL-UL slave subregions at base+0x000 (dm_regs) and base+0x800 (dm_mem). soc-generator emits both slots in the generated xbar.",
+    "xbar_host_slots_consumed": 1,
+    "xbar_host_slots_note": "One TL-UL host slot for System Bus Access (sba). Requires xbar to support multi-host arbitration if ibex is also a host.",
+    "required_cpu_signals": [
+      {
+        "signal": "debug_req_i",
+        "direction": "input_to_cpu",
+        "description": "Wire debug_req_o[hart] to the CPU's async debug request input"
+      },
+      {
+        "signal": "ndmreset",
+        "direction": "reset_tree",
+        "description": "OR ndmreset_o into the CPU + peripherals reset; NOT into this debug module's own reset"
+      },
+      {
+        "signal": "dmactive",
+        "direction": "status",
+        "description": "dmactive_o can gate clock trees of non-debug IPs when debug is inactive (optional power optimization)"
+      }
+    ],
+    "required_cpu_features": [
+      "RISC-V Debug Spec 0.13 support (dcsr, dpc, dscratch0, dscratch1 CSRs)",
+      "M-mode and optional S-mode/U-mode debug entry",
+      "Optional: trigger module (tselect, tdata1-3) for hardware breakpoints"
+    ],
+    "pin_count": 5,
+    "pin_list": [
+      "jtag_tck (input)",
+      "jtag_tms (input)",
+      "jtag_tdi (input)",
+      "jtag_tdo (output, tri-state via tdo_oe)",
+      "jtag_trst_n (input, optional — tie 1'b1 if unused)"
+    ],
+    "reset_domain": "system_reset",
+    "reset_note": "Use power-on reset (NOT system reset). Debug module must remain alive across CPU resets so debugger session survives ndmreset.",
+    "clock_domain": "sys_clk",
+    "clock_note": "JTAG TAP is clocked by jtag_tck (asynchronous to sys_clk); dmi_cdc inside pulp core handles the CDC."
+  },
+  "firmware_integration": {
+    "firmware_visible_registers": false,
+    "firmware_visible_registers_note": "The debug module is accessed exclusively by an external debugger over JTAG. It does not expose any firmware-programmable registers.",
+    "linker_script_reserved_regions": [
+      {
+        "start": "base_address + 0x0000",
+        "end": "base_address + 0x0FFF",
+        "reason": "Debug module address space — firmware code/data must not be placed here"
+      }
+    ],
+    "boot_rom_notes": [
+      "No firmware action required for debug-module initialization — it self-initializes from pulp dm_csrs reset values.",
+      "If dmactive_o is used for clock gating, boot ROM should wait briefly after reset before assuming peripherals are clocked."
+    ],
+    "interrupt_integration": {
+      "emits_interrupts": false,
+      "note": "Debug module signals entry via debug_req_o (debug mode is not a standard interrupt). Firmware does not handle debug traps — they are handled by the CPU's debug mode controller which executes the park loop in dm_mem."
+    },
+    "toolchain": {
+      "compiler_flag_required": "-march=rv32imc_zicsr (debug CSR access requires Zicsr extension)",
+      "gdb_target_remote": "openocd -f soc-generator/templates/openocd/vyges_rv_dbg_tlul.cfg -c 'init; target remote :3333'",
+      "openocd_config_reference": "docs-internal: soc-generator/templates/openocd/vyges_rv_dbg_tlul.cfg.j2 (rendered per SoC with IdcodeValue + DmBaseAddress from soc-spec.yaml)"
+    }
+  },
+  "debug_spec": {
+    "version": "0.13",
+    "dmi_transport": ["jtag_tap", "tl_ul_dmi (optional via UseDmiInterface)"],
+    "supported_abstract_commands": ["Access Register", "Quick Access"],
+    "supports_program_buffer": true,
+    "program_buffer_size_words": 16,
+    "data_registers_count": 12,
+    "supports_sba": true,
+    "sba_widths": [32],
+    "supports_halt_groups": false,
+    "supports_halt_groups_note": "Per-hart halt works for NrHarts > 1, but coordinated halt-groups require SoC-level glue not in this wrapper.",
+    "hart_reset_support": true,
+    "authentication": "none",
+    "authentication_note": "No authentication — debug is unconditionally enabled. For lifecycle-gated debug use opentitan-rv-dm with full OpenTitan lc_ctrl stack."
+  },
+  "schema_integration": {
+    "soc_spec_key": "debug_module",
+    "soc_spec_ip_value": "vyges-rv-dbg-tlul",
+    "required_schema_fields": ["instance", "target_cpu", "base_address"],
+    "recommended_schema_fields": ["xbar", "jtag.idcode", "jtag.tck_pin", "jtag.tms_pin", "jtag.tdi_pin", "jtag.tdo_pin"],
+    "schema_source": "vyges-ip-internal/soc_spec/schema/split/soc-debug-module.json"
+  }
+}
