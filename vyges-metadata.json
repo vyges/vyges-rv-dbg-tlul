@@ -3,6 +3,9 @@
   "x-version": "1.0.0",
   "name": "vyges-rv-dbg-tlul",
   "version": "0.1.0",
+  "branding": {
+    "display_name": "RISC-V Debug Module"
+  },
   "description": "Vyges TL-UL wrapper around pulp-platform RISC-V Debug Module (RISC-V Debug Spec 0.13). Provides TL-UL slave (regs + mem) + TL-UL master (SBA) + JTAG TAP as a drop-in debug IP for Vyges TL-UL SoCs.",
   "license": "Apache-2.0",
   "maturity": "development",
