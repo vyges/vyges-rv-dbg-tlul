@@ -105,15 +105,28 @@ module vyges_rv_dbg_tlul_slave
     assign slave_wdata_o = wdata_q;
 
     // ── TL-UL D-channel response ─────────────────────────────────────
+    // Pre-integrity response; tlul_rsp_intg_gen below signs rsp_intg +
+    // data_intg so CPU-side tlul_rsp_intg_chk accepts this slave's d-channel
+    // on a signed TL-UL domain. See Bus security domain contract work item
+    // in deckrun-server/docs/todo.md.
+    tl_d2h_t tl_d_o_pre;
     always_comb begin
-        tl_d_o          = TL_D2H_DEFAULT;
-        tl_d_o.a_ready  = (state_q == S_IDLE);
-        tl_d_o.d_valid  = (state_q == S_RESPOND);
-        tl_d_o.d_opcode = we_q ? AccessAck : AccessAckData;
-        tl_d_o.d_size   = size_q;
-        tl_d_o.d_source = source_q;
-        tl_d_o.d_data   = {{(top_pkg::TL_DW-BusWidth){1'b0}}, rdata_q};
-        tl_d_o.d_error  = 1'b0;
+        tl_d_o_pre          = TL_D2H_DEFAULT;
+        tl_d_o_pre.a_ready  = (state_q == S_IDLE);
+        tl_d_o_pre.d_valid  = (state_q == S_RESPOND);
+        tl_d_o_pre.d_opcode = we_q ? AccessAck : AccessAckData;
+        tl_d_o_pre.d_size   = size_q;
+        tl_d_o_pre.d_source = source_q;
+        tl_d_o_pre.d_data   = {{(top_pkg::TL_DW-BusWidth){1'b0}}, rdata_q};
+        tl_d_o_pre.d_error  = 1'b0;
     end
+
+    tlul_rsp_intg_gen #(
+        .EnableRspIntgGen  (1),
+        .EnableDataIntgGen (1)
+    ) u_rsp_intg_gen (
+        .tl_i (tl_d_o_pre),
+        .tl_o (tl_d_o)
+    );
 
 endmodule

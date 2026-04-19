@@ -58,7 +58,10 @@ module vyges_rv_dbg_tlul_master
         state_d = state_q;
         unique case (state_q)
             M_IDLE:   if (master_req_i)   state_d = M_AISSUE;
-            M_AISSUE: if (tl_h_i.a_ready) state_d = M_DWAIT;
+            M_AISSUE: begin
+                if (tl_h_i.a_ready && tl_h_i.d_valid) state_d = M_IDLE;
+                else if (tl_h_i.a_ready)              state_d = M_DWAIT;
+            end
             M_DWAIT:  if (tl_h_i.d_valid) state_d = M_IDLE;
             default:                      state_d = M_IDLE;
         endcase
@@ -90,22 +93,35 @@ module vyges_rv_dbg_tlul_master
     assign master_gnt_o = (state_q == M_IDLE) && master_req_i;
 
     // ── TL-UL A-channel output ───────────────────────────────────────
+    // Build the pre-integrity packet; tlul_cmd_intg_gen below fills in
+    // the correct a_user.cmd_intg + data_intg so slaves that check command
+    // integrity (uart_reg_top, tlul_sram_byte, etc.) accept the request
+    // instead of returning d_error=1 with DataWhenError (0xffffffff).
+    tl_h2d_t tl_h_o_pre;
     always_comb begin
-        tl_h_o           = TL_H2D_DEFAULT;
-        tl_h_o.a_valid   = (state_q == M_AISSUE);
-        tl_h_o.a_opcode  = we_q ? ((&be_q) ? PutFullData : PutPartialData)
-                                : Get;
-        tl_h_o.a_size    = top_pkg::TL_SZW'($clog2(BusWidth/8));
-        tl_h_o.a_source  = SourceId;
-        tl_h_o.a_address = {{(top_pkg::TL_AW-BusWidth){1'b0}}, addr_q};
-        tl_h_o.a_mask    = be_q;
-        tl_h_o.a_data    = {{(top_pkg::TL_DW-BusWidth){1'b0}}, wdata_q};
-        tl_h_o.a_user    = TL_A_USER_DEFAULT;
-        tl_h_o.d_ready   = (state_q == M_DWAIT);
+        tl_h_o_pre           = TL_H2D_DEFAULT;
+        tl_h_o_pre.a_valid   = (state_q == M_AISSUE);
+        tl_h_o_pre.a_opcode  = we_q ? ((&be_q) ? PutFullData : PutPartialData)
+                                    : Get;
+        tl_h_o_pre.a_size    = top_pkg::TL_SZW'($clog2(BusWidth/8));
+        tl_h_o_pre.a_source  = SourceId;
+        tl_h_o_pre.a_address = {{(top_pkg::TL_AW-BusWidth){1'b0}}, addr_q};
+        tl_h_o_pre.a_mask    = be_q;
+        tl_h_o_pre.a_data    = {{(top_pkg::TL_DW-BusWidth){1'b0}}, wdata_q};
+        tl_h_o_pre.a_user    = TL_A_USER_DEFAULT;
+        tl_h_o_pre.d_ready   = 1'b1;
     end
 
+    tlul_cmd_intg_gen #(
+        .EnableDataIntgGen(1)
+    ) u_cmd_intg_gen (
+        .tl_i (tl_h_o_pre),
+        .tl_o (tl_h_o)
+    );
+
     // ── Response back to pulp master ─────────────────────────────────
-    assign master_r_valid_o     = (state_q == M_DWAIT) && tl_h_i.d_valid;
+    assign master_r_valid_o     = ((state_q == M_AISSUE && tl_h_i.a_ready) ||
+                                    (state_q == M_DWAIT)) && tl_h_i.d_valid;
     assign master_r_rdata_o     = tl_h_i.d_data[BusWidth-1:0];
     assign master_r_err_o       = tl_h_i.d_error;
     assign master_r_other_err_o = 1'b0;  // reserved — TL-UL surfaces only d_error
