@@ -113,7 +113,8 @@
       "protocol": "TL-UL",
       "port": "regs_tl_d",
       "width": 32,
-      "description": "TL-UL slave — 8 KB region covering debug CSRs (0x000-0x7FF) and debug ROM + program buffer (0x800-0xFFF)"
+      "description": "TL-UL slave — 8 KB region covering debug CSRs (0x000-0x7FF) and debug ROM + program buffer (0x800-0xFFF)",
+      "protocol_level": "baseline"
     },
     {
       "type": "bus",
@@ -121,7 +122,8 @@
       "protocol": "TL-UL",
       "port": "sba_tl_h",
       "width": 32,
-      "description": "TL-UL host — System Bus Access for debugger-initiated R/W"
+      "description": "TL-UL host — System Bus Access for debugger-initiated R/W",
+      "protocol_level": "baseline"
     },
     {
       "type": "custom",
