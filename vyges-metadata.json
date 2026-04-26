@@ -362,7 +362,7 @@
   "registers": [],
   "soc_integration": {
     "xbar_slave_slots_consumed": 2,
-    "xbar_slave_slots_note": "Two TL-UL slave subregions at base+0x000 (dm_regs) and base+0x800 (dm_mem). soc-generator emits both slots in the generated xbar.",
+    "xbar_slave_slots_note": "Two TL-UL slave subregions at base+0x000 (dm_regs) and base+0x800 (dm_mem). Both slots must be wired in the integrating xbar.",
     "xbar_host_slots_consumed": 1,
     "xbar_host_slots_note": "One TL-UL host slot for System Bus Access (sba). Requires xbar to support multi-host arbitration if ibex is also a host.",
     "required_cpu_signals": [
@@ -420,8 +420,7 @@
     },
     "toolchain": {
       "compiler_flag_required": "-march=rv32imc_zicsr (debug CSR access requires Zicsr extension)",
-      "gdb_target_remote": "openocd -f soc-generator/templates/openocd/vyges_rv_dbg_tlul.cfg -c 'init; target remote :3333'",
-      "openocd_config_reference": "docs-internal: soc-generator/templates/openocd/vyges_rv_dbg_tlul.cfg.j2 (rendered per SoC with IdcodeValue + DmBaseAddress from soc-spec.yaml)"
+      "gdb_target_remote": "openocd -f <openocd_cfg> -c 'init; target remote :3333' (BSCANE2 or external JTAG probe; cfg sets IDCODE + IR opcodes for the integrating SoC)"
     }
   },
   "debug_spec": {
