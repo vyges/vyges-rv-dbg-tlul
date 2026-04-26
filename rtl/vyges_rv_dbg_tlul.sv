@@ -45,13 +45,15 @@ module vyges_rv_dbg_tlul
 );
 
     // ── Internal signals ─────────────────────────────────────────────
-    // Pulp dm_top slave port
-    logic                   dm_slave_req;
-    logic                   dm_slave_we;
-    logic [BusWidth-1:0]    dm_slave_addr;
-    logic [BusWidth/8-1:0]  dm_slave_be;
-    logic [BusWidth-1:0]    dm_slave_wdata;
-    logic [BusWidth-1:0]    dm_slave_rdata;
+    // Pulp dm_top slave port — mark_debug for ILA visibility of the CPU-side
+    // fetch handshake into the DM register-file + ROM. Same pattern as
+    // rv_core_ibex_tlul.sv (instr/data bus probes).
+    (* mark_debug = "true", keep = "true" *) logic                   dm_slave_req;
+    (* mark_debug = "true", keep = "true" *) logic                   dm_slave_we;
+    (* mark_debug = "true", keep = "true" *) logic [BusWidth-1:0]    dm_slave_addr;
+    (* mark_debug = "true", keep = "true" *) logic [BusWidth/8-1:0]  dm_slave_be;
+    (* mark_debug = "true", keep = "true" *) logic [BusWidth-1:0]    dm_slave_wdata;
+    (* mark_debug = "true", keep = "true" *) logic [BusWidth-1:0]    dm_slave_rdata;
 
     // Pulp dm_top master (SBA) port
     logic                   dm_master_req;
